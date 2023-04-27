@@ -18,7 +18,7 @@ import requests
 import re
 
 
-with open('C:/Coding/Python/Music-Streaming/Deezer Bot/proxies.txt', 'r') as f:
+with open('proxies.txt', 'r') as f:
     proxies = f.read().splitlines()
 chrome_options = Options()
 chrome_options.add_argument('--proxy-server=%s' % proxies[0])
@@ -28,7 +28,7 @@ chrome_options.add_argument('--start-maximized')
 
 
 
-with open('C:/Coding/Python/Music-Streaming/Deezer Bot/Playlist.txt', 'r') as p:
+with open('Playlist.txt', 'r') as p:
     playlist_urls = p.readlines()
     random.shuffle(playlist_urls)
 
@@ -110,7 +110,7 @@ def worker(q, chrome_options,):
             WebDriverWait(driver, 1).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#page_player > div > div.player-controls > ul > li:nth-child(5) > button'))).click()
 
 
-            print(f"Die Songs wurden {Fore.GREEN}{gesamte_streams}{Fore.RESET} mal gestreamt!")
+            print(f"The songs where {Fore.GREEN}{gesamte_streams}{Fore.RESET} times streamed!")
             print(f"")
             print(f"---------------------------------------------------------------------------")
             print(f"")
@@ -127,20 +127,20 @@ def worker(q, chrome_options,):
             duration = end_time - start_time
             rounded_duration = round(duration, 2)
 
-            print(f"Der Song wurde {Fore.MAGENTA}{rounded_duration}{Fore.RESET} Sekunden gespielt.")
+            print(f"The songs where played {Fore.MAGENTA}{rounded_duration}{Fore.RESET} seconds.")
         q.task_done()
 
 q = queue.Queue()
 
 # Zeilen aus der Textdatei in die Queue einfügen
-with open('C:/Coding/Python/Music-Streaming/Deezer Bot/combos.txt', 'r') as file:
+with open('combos.txt', 'r') as file:
     lines = file.readlines()
     random.shuffle(lines)
     for line in lines:
         q.put(line)
         
 
-with open('C:\Coding/Python/Music-Streaming/Deezer Bot/combos.txt') as f:
+with open('combos.txt') as f:
     anzahl_zeilen = sum(1 for line in f)
 
 anzahl_threads = anzahl_zeilen
@@ -162,5 +162,3 @@ for i in range(anzahl_threads):
     q.put(None)
 for t in threads:
     t.join()
-
-print(f"Es wurden insgesamt {gesamte_streams} Streams hinzugefügt.")
