@@ -1,6 +1,7 @@
 import random
 import time 
 import selenium
+from multiprocessing import Value
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
@@ -17,11 +18,22 @@ import json
 import requests
 import re
 
+custom_fig = Figlet(font='graffiti')
+print(custom_fig.renderText('DeezerFreezer'))
+print(rf"""{Fore.RED}                                                      v1
+                                                    by RuvenBeck   
+{Style.RESET_ALL}
+""")
+
+
+lock = threading.Lock()
+
 
 with open('proxies.txt', 'r') as f:
     proxies = f.read().splitlines()
+
+
 chrome_options = Options()
-chrome_options.add_argument('--proxy-server=%s' % proxies[0])
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 chrome_options.add_argument('--disable-webrtc')
 chrome_options.add_argument('--start-maximized')
@@ -34,6 +46,7 @@ with open('Playlist.txt', 'r') as p:
 
 gesamte_streams = 0
 
+
 def worker(q, chrome_options,):
 
     while True:
@@ -44,10 +57,13 @@ def worker(q, chrome_options,):
         parts = line.split(":", 1)
         email = parts[0]
         password = parts[1].strip()
-        print("Email:", email, "Password:", password)
+        random_proxy = random.choice(proxies)
+        chrome_options.add_argument('--proxy-server=%s' % random_proxy)
+        print("Email:", email, "Password:", password, "Proxy:", random_proxy)
         # Hier können weitere Aktionen mit der E-Mail und dem Passwort durchgeführt werden
 
-        driver = webdriver.Chrome(options=chrome_options)
+        chrome_driver_path = 'chromedriver.exe'
+        driver = webdriver.Chrome(executable_path=chrome_driver_path, options=chrome_options)
         driver.get('https://www.deezer.com/de/login')
 
         #Cookies ablehnen
@@ -74,22 +90,31 @@ def worker(q, chrome_options,):
         else:
             pass
 
-
+        time.sleep(3)
 
         #Time for recaptcha
-        time.sleep(30)
-
+        try:
+            captchawait = WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#modal-close')))
+        except:
+            pass
 
         #Playlist auswählen
         playlist_url = random.choice(playlist_urls)        
-        driver.get(playlist_url)
-
+        driver.get(playlist_url)    
 
         #Deezer Free Popup
         try:
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#modal-close'))).click()
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#modal-close'))).click()
         except:
             pass
+
+
+        #Cookies ablehnen
+        try:
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID,'gdpr-btn-refuse-all'))).click()
+        except:
+            pass
+
 
 
         #Playlist abspielen
@@ -105,12 +130,17 @@ def worker(q, chrome_options,):
         #Skip Loop
         while True:
 
+            lock.acquire()
             gesamte_streams += 1
+            lock.release()
 
             WebDriverWait(driver, 1).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#page_player > div > div.player-controls > ul > li:nth-child(5) > button'))).click()
 
+            title_of_current_song = driver.find_element(By.CSS_SELECTOR, '#page_player > div > div.player-track > div > div.track-heading > div.track-title > div > div > div > a:nth-child(1)').text
+            if title_of_current_song != "Anzeige":
+                pass
 
-            print(f"The songs where {Fore.GREEN}{gesamte_streams}{Fore.RESET} times streamed!")
+            print(f"Die Songs wurden {Fore.GREEN}{gesamte_streams}{Fore.RESET} mal gestreamt!")
             print(f"")
             print(f"---------------------------------------------------------------------------")
             print(f"")
@@ -127,7 +157,7 @@ def worker(q, chrome_options,):
             duration = end_time - start_time
             rounded_duration = round(duration, 2)
 
-            print(f"The songs where played {Fore.MAGENTA}{rounded_duration}{Fore.RESET} seconds.")
+            print(f"{Fore.RED}{title_of_current_song}{Fore.RESET} wurde {Fore.MAGENTA}{rounded_duration}{Fore.RESET} Sekunden gespielt.")
         q.task_done()
 
 q = queue.Queue()
@@ -144,6 +174,15 @@ with open('combos.txt') as f:
     anzahl_zeilen = sum(1 for line in f)
 
 anzahl_threads = anzahl_zeilen
+
+
+
+#Printing of all the inputs
+print(f"{Fore.LIGHTYELLOW_EX}{len(proxies)}{Fore.RESET} Proxies are loaded")
+print(f"{Fore.LIGHTYELLOW_EX}{len(playlist_urls)}{Fore.RESET} Playlists are loaded")
+print(f"{Fore.LIGHTYELLOW_EX}{len(lines)}{Fore.RESET} Combos are loaded")
+
+
 
 
 # Threads erstellen
