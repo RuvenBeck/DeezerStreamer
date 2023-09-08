@@ -7,7 +7,7 @@ This bot is still in progress and not finished
 SEMI-Automated Deezer Login, streaming fully automated
 
 # Set Up the bot
-  1. You need decent proxies, Spotify and other streaming services are very good in blocking traffic from free sources and datacenter proxies
+  1. You need decent proxies, Spotify, Deezer and other streaming services are very good in blocking traffic from free sources and datacenter proxies
   ->Use Webshares cheap ISPs proxies to let your streams count https://www.webshare.io/?referral_code=r19htx02yra2
   2. You need a lot of playlist, for the best results create more then 15 playlist with costum pictures and on different accounts
   3. You are free to use premium or free accounts the bot works with both types
